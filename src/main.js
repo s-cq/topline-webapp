@@ -2,10 +2,23 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import './styles/index.less'
+import {
+  Button,
+  Cell,
+  CellGroup,
+  NavBar,
+  Field,
+  Toast } from 'vant'
 
-import { Button } from 'vant'
+Vue
+  .use(Button)
+  .use(NavBar)
+  .use(Cell)
+  .use(CellGroup)
+  .use(Field)
+  .use(Toast)
 
-Vue.use(Button)
 Vue.config.productionTip = false
 
 new Vue({
