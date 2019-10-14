@@ -10,6 +10,17 @@ export default new VueRouter({
       path: '/login',
       component: () => import('@/views/login')
       // component: Login
+    },
+    {
+      path: '/',
+      component: () => import('@/views/tabbar'),
+      children: [
+        {
+          path: '',
+          component: () => import('@/views/home')
+        }
+      ]
+
     }
 
   ]
