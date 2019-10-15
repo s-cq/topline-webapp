@@ -20,7 +20,13 @@ import {
   TabbarItem,
   Tab,
   Tabs,
-  List
+  List,
+  Grid,
+  GridItem,
+  Lazyload,
+  Image,
+  PullRefresh,
+  Popup
 } from 'vant' // 验证规则
 
 // 配置使用中文语言
@@ -59,6 +65,12 @@ Vue
   .use(Tab)
   .use(Tabs)
   .use(List)
+  .use(Grid)
+  .use(GridItem)
+  .use(Lazyload)
+  .use(Image)
+  .use(PullRefresh)
+  .use(Popup)
 
 Vue.config.productionTip = false
 
