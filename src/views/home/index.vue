@@ -1,12 +1,14 @@
 <template>
   <div class="home">
-    <van-nav-bar title="首页" fixed/>
+    <van-nav-bar  fixed>
+      <van-button class="searchBtn" size="small"  round  type="info" slot="title">搜索</van-button>
+    </van-nav-bar>
 
     <van-tabs v-model="active" swipeable>
       <!-- 面包菜单 -->
-      <!-- <div slot="nav-right" class="wap-nav">
+      <div slot="nav-right" @click="isChannelShow=true" class="wap-nav">
          <van-icon name="wap-nav" />
-      </div> -->
+      </div>
       <van-tab
         :title="channel.name"
         v-for="channel in channelsList"
@@ -80,23 +82,30 @@
       >
       <div class="box">
       <van-cell title="我的频道" >
-          <van-button  type="primary" size="small">小型按钮</van-button>
+          <van-button @click="isEdit=!isEdit" type="primary" size="small">
+            {{ isEdit? '编辑':'编辑' }}</van-button>
       </van-cell>
-       <van-grid :gutter="10" :column-num="5">
-              <van-grid-item
-                v-for="value in 6"
-                :key="value"
 
-                text="文字"
-              />
+       <van-grid :gutter="10" :column-num="5">
+          <van-grid-item text="推荐" @click="myRecommend(0)"/>
+              <!-- slice返回新数组不对原数组操作 -->
+              <van-grid-item
+                 v-for="(channel,index) in channelsList.slice(1)"
+                :key="index"
+                :text="channel.name"
+                @click ='removeChannel(index)'
+              >
+              <van-icon v-show="isEdit" class="close-ico" slot="icon" name="close" />
+              <!-- {{ channel.name }} -->
+              </van-grid-item>
        </van-grid>
         <van-cell title="推荐频道" />
-         <van-grid :gutter="10" :column-num="5">
+         <van-grid :gutter="10" :column-num="4">
               <van-grid-item
-                v-for="value in 6"
-                :key="value"
-
-                text="文字"
+                v-for="(item,index) in getRecommendChnnel"
+                :key="index"
+                :text="item.name"
+                @click="addChannel(item)"
               />
        </van-grid>
       </div>
@@ -107,19 +116,40 @@
 
 <script>
 
-import { getChannels } from '@/api/channels' // 获取频道列表
+import { getChannels, getAllChannels } from '@/api/channels' // 获取频道列表//获取全部频道
 import { getArticles } from '@/api/article' // 获取文章信息
-// import { async } from 'q'
+import { setItem, getItem } from '@/utils/storage' // 获取文章信息
+
 export default {
   name: 'HomIndex',
   data () {
     return {
-      isChannelShow: true, // 是否显示碳层
+      isEdit: false,
+      isChannelShow: false, // 是否显示碳层
       active: 0,
-      channelsList: [] // [{article/loading/id/name/finished},{}]
+      channelsList: [], // [{article/loading/id/name/finished},{}]
+      allChannels: [] // 所有频道
     }
   },
+  watch: {
+    channelsList (newVal) {
+      setItem('aaa', newVal)
+    }
+  },
+  computed: {
+    // 获取推荐频道
+    getRecommendChnnel () {
+      var arr = []
+      this.allChannels.forEach(channel => {
+        let aaa = this.channelsList.find(item => item.id === channel.id)
+        if (!aaa) {
+          arr.push(channel)
+        }
+      })
+      return arr
+    }
 
+  },
   methods: {
     // =============================上拉更新===========
     async onLoad () {
@@ -146,17 +176,22 @@ export default {
     },
     // ===================获取频道============
     async Channels () {
-      const { data } = await getChannels()
-
-      const activeChannel = data.data.channels
-      activeChannel.forEach(item => {
-        item.article = [] // 存储频道的文章列表
-        item.loading = false // 上拉更新结束
-        item.finished = false // 加载完成
-        item.pre_timestamp = null // 请求前一页历史数据的时间戳
-        item.isLoading = false // 下拉设置为 false，表示加载完成。
-      })
-      this.channelsList = activeChannel
+      var ischannelhave = getItem('aaa')
+      if (!ischannelhave) {
+        const { data } = await getChannels()
+        const activeChannel = data.data.channels
+        // activeChannel.forEach(item => {
+        //   item.article = [] // 存储频道的文章列表
+        //   item.loading = false // 上拉更新结束
+        //   item.finished = false // 加载完成
+        //   item.pre_timestamp = null // 请求前一页历史数据的时间戳
+        //   item.isLoading = false // 下拉设置为 false，表示加载完成。
+        // })
+        this.bianli(activeChannel)
+        this.channelsList = activeChannel
+      } else {
+        this.channelsList = ischannelhave
+      }
     },
     // =============================下拉更新===========
     async onRefresh () {
@@ -170,16 +205,68 @@ export default {
       activeChannel.article.unshift(...data.data.results)
       activeChannel.isLoading = false
       this.$toast('刷新成功')
+    },
+    // =================获取所有频道=============
+    async getAll () {
+      const { data } = await getAllChannels() // 获取全部频道
+      // console.log(data)
+      const activeChannel = data.data.channels
+      this.bianli(activeChannel)
+      this.allChannels = data.data.channels
+    },
+    // =============点击==》》 加入我的频道===========
+    addChannel (channel) {
+      this.channelsList.push(channel)
+    },
+    // =============点击==》》 移出我的频道===========
+    removeChannel (index) {
+      if (this.isEdit) {
+        this.channelsList.splice(index, 1)
+      } else {
+        this.active = index
+        this.isChannelShow = false
+      }
+    },
+    myRecommend (index) {
+      this.active = index
+      this.isChannelShow = false
+    },
+    // 遍历选中的频道
+    bianli (channel) {
+      channel.forEach(item => {
+        item.article = [] // 存储频道的文章列表
+        item.loading = false // 上拉更新结束
+        item.finished = false // 加载完成
+        item.pre_timestamp = null // 请求前一页历史数据的时间戳
+        item.isLoading = false // 下拉设置为 false，表示加载完成。
+      })
     }
   },
   created () {
     this.Channels() // 获取用户频道列表s
+    this.getAll() // 获取全部频道列表s
   }
+
 }
 </script>
 
 <style lang="less" scoped>
+.searchBtn{
+  width: 100%;
+  background-color: #5babfb;
+}
+// 面包菜单
+  .wap-nav {
+    font-size: 25px;
+    position: sticky;
+    right: 0;
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    opacity: 0.8;
+  }
 .home {
+  // 作者、评论、
   .article-info{
     display: flex;
     align-items: center;
@@ -189,6 +276,7 @@ export default {
     }
   }
   .van-tabs{
+    // 首页频道推荐
    /deep/  .van-tabs__wrap{
           position: fixed;
         top:46px;
@@ -196,10 +284,22 @@ export default {
         left: 0;
         right: 15px;
     }
+    // 推荐内容
     /deep/  .van-tabs__content{
         margin-top: 90px;
         margin-bottom: 50px;
     }
   }
+  // 我的频道
+  .box{
+    margin-top: 20px;
+    .close-ico{
+      position: absolute;
+      top: -8px;
+      right: -5px;
+    }
+
+  }
+
 }
 </style>
