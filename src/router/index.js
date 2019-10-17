@@ -12,6 +12,16 @@ export default new VueRouter({
       // component: Login
     },
     {
+      path: '/search',
+      component: () => import('@/views/search')
+
+    },
+    {
+      path: '/search/:p',
+      component: () => import('@/views/search/searchResult')
+
+    },
+    {
       path: '/',
       component: () => import('@/views/tabbar'),
       children: [

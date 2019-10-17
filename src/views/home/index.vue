@@ -1,7 +1,13 @@
 <template>
   <div class="home">
     <van-nav-bar  fixed>
-      <van-button class="searchBtn" size="small"  round  type="info" slot="title">搜索</van-button>
+      <!-- 搜索 -->
+      <van-button
+      @click="$router.push('/search')"
+      class="searchBtn"
+      size="small"  round
+      type="info"
+      slot="title">搜索</van-button>
     </van-nav-bar>
 
     <van-tabs v-model="active" swipeable>

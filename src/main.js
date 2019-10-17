@@ -26,7 +26,8 @@ import {
   Lazyload,
   Image,
   PullRefresh,
-  Popup
+  Popup,
+  Search
 } from 'vant' // 验证规则
 
 // 配置使用中文语言
@@ -71,6 +72,7 @@ Vue
   .use(Image)
   .use(PullRefresh)
   .use(Popup)
+  .use(Search)
 
 Vue.config.productionTip = false
 
